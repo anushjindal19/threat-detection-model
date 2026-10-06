@@ -30,3 +30,19 @@ Heartbleed is far too rare to score reliably (all 11 rows survived cleaning:
 9 ended up in train, 2 in test).
 
 ```
+
+## 2026-10-06 — Preprocessing (notebook 02)
+
+```
+0.19% rows dropped for infinite values (1,297 rows)
+11.7% rows dropped for duplicate values (80,914 rows; fewer than the 81,909 found in
+  notebook 1, probably because some duplicates were among the infinite rows already
+  dropped; worked out from the row counts, not printed by notebook 2)
+692,703 - 1,297 - 80,914 = 610,492 rows left
+No rows dropped for missing values
+No identifier columns removed
+X_train: (488393, 78)
+X_test:  (122099, 78)
+Stratified splitting worked cleanly, equal percentage split for train and test data
+
+```
