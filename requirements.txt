@@ -1,0 +1,19 @@
+# Python libraries needed for Stages 1-4 (Research, Dataset, Preprocessing,
+# Feature Engineering) of the Lightweight Cybersecurity Threat Detector project.
+#
+# You do NOT need to install these manually in Google Colab — Colab already
+# has almost all of them. This file matters for:
+#   1. Installing the same libraries on your own PC (setup.bat does this).
+#   2. Anyone else who clones the GitHub repo and wants to run it locally.
+#
+# Install locally with:
+#   pip install -r requirements.txt
+
+pandas>=2.0.0
+numpy>=1.24.0
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+jupyter>=1.0.0
+notebook>=7.0.0
+joblib>=1.3.0
