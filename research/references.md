@@ -37,6 +37,17 @@ Every official link you need for this project, in one place. Bookmark this page.
 > Tuesday, Wednesday, Thursday, Friday), each with different attack types. Start with
 > **one single day's file** — see `data/README.md` for exactly which one and why.
 
+## Research papers (see `literature_review.md` for notes)
+
+| Entry | Paper | Link |
+|---|---|---|
+| 2 | Engelen, Rimmer & Joosen (2021), *Troubleshooting an Intrusion Detection Dataset: the CICIDS2017 Case Study*, IEEE SPW | https://lirias.kuleuven.be/retrieve/713070 |
+| 3 | Arp et al. (2022), *Dos and Don'ts of Machine Learning in Computer Security*, USENIX Security | https://arxiv.org/abs/2010.09470 |
+| 4 | Hooker et al. (2019), *What Do Compressed Deep Neural Networks Forget?*, arXiv | https://arxiv.org/abs/1911.05248 |
+| 5 | Cantone, Marrocco & Bria (2024), *On the Cross-Dataset Generalization of ML for Network Intrusion Detection*, JISA | https://arxiv.org/abs/2402.10974 |
+| 6 | Zheng et al. (2024), *Planter: Rapid Prototyping of In-Network ML Inference*, ACM SIGCOMM CCR | https://eng.ox.ac.uk/media/zetja3ek/zheng24planter.pdf |
+| 7 | Mirsky et al. (2018), *Kitsune: An Ensemble of Autoencoders for Online Network Intrusion Detection*, NDSS | https://arxiv.org/abs/1802.09089 |
+
 ## Background reading (concepts, not tied to one library)
 
 | Topic | Resource |
