@@ -37,8 +37,7 @@ Flow Bytes has 1008 missing values
 Flow Packets has 1297, Flow Bytes has 289 infinite values
 81909 duplicate rows (11.82% of all)
 BENIGN and DoS Hulk are the most common (63.5% and 33.3%, respectively)
-DoS GoldenEye, DoS slowloris and DoS Slowhttptest are rare (1.84%, 0.84% and 0.79%, respectively)
-  (check GoldenEye: 10,293 of 692,703 rows would be 1.49%, so 1.84% may be a typo)
+DoS GoldenEye, DoS slowloris and DoS Slowhttptest are rare (1.49%, 0.84% and 0.79%, respectively)
 Heartbleed is the rarest at ~0.00 (only 11 counts)
 
 ```
