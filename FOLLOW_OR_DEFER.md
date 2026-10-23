@@ -1,5 +1,10 @@
 # Follow Now vs. Defer — Read This Before You Start Any Session
 
+> **Status (23-10-2026):** Stages 1-4 are done, and the Stage 5 baseline
+> (`notebooks/04_baseline_model.ipynb`) has been built and run. Where this file says the
+> baseline model "doesn't exist yet", that was true when it was written. For the current
+> state and results, see `README.md`.
+
 A one-page compass for the whole project. When in doubt about "should I be doing this
 right now," check here first.
 

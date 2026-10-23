@@ -1,5 +1,13 @@
 # Research Question
 
+## Status (23-10-2026)
+
+Stage 5 has started, as a **CPU-only decision tree** (`notebooks/04_baseline_model.ipynb`),
+so the original lightweight framing below is the one the project is currently following.
+The baseline results (detection, model size, speed and memory for feature lists A-D) are
+in `README.md` and `experiments/`. Whether GPU-capable models are used at a later stage
+has not been decided. The note below is kept as a record of that earlier plan.
+
 ## Update — GPU-capable models (decision made after the initial roadmap)
 
 The original plan below was CPU-only, built entirely around a lightweight Decision Tree

@@ -1,5 +1,10 @@
 # Verification Checklist — Stages 1 through 4
 
+> **Status (23-10-2026):** Stages 1-4 are done, and the Stage 5 baseline
+> (`notebooks/04_baseline_model.ipynb`) has been built and run. Where this file says the
+> baseline model "doesn't exist yet", that was true when it was written. For the current
+> state and results, see `README.md`.
+
 Use this to confirm each stage is genuinely done before moving on. Check items off
 honestly — this checklist is for you, not for show.
 

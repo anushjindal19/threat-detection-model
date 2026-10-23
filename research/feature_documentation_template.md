@@ -26,6 +26,28 @@ For every column in your dataset, add one row:
   describes traffic volume, timing, packet, protocol, or port *behaviour* that could
   genuinely help distinguish attacks from normal traffic.
 
+## Summary of the decisions (updated 23-10-2026)
+
+- The file has **78 input features** plus the `Label` column.
+- **20 are removed** and **58 are kept**. The 58 kept features are feature set **A**.
+  Sets B (39), C (15) and D (6) are smaller selections from A (see notebook 3).
+- Why the 20 were removed:
+  - **10 are always 0 in this file**, so they carry no information: Bwd PSH Flags,
+    Fwd URG Flags, Bwd URG Flags, CWE Flag Count, and the 6 Bulk columns.
+  - **6 are exact copies** of a column that is kept: Avg Fwd Segment Size, Avg Bwd
+    Segment Size, Fwd Header Length.1, Subflow Fwd Packets, Subflow Fwd Bytes,
+    Subflow Bwd Packets.
+  - **1 ranks flows in exactly the same order** as a kept column: Packet Length Variance.
+  - **3 are nearly (not exactly) identical** to a kept column: Subflow Bwd Bytes,
+    ECE Flag Count, Average Packet Size.
+- **Every one of these reasons was tested on the real data** in notebook 4, Step 3, not
+  just taken from what other papers say. Four claims did not fully hold. Three were close
+  enough that the column stays removed (the reason now says "nearly identical"). One,
+  **Fwd PSH Flags**, was wrong: it is not always zero, so it was **put back**.
+- The Data Type column below was corrected on 23-10-2026 to match what `df.info()`
+  printed in notebook 1. Several count columns were written as `float64` but are
+  actually `int64`.
+
 ## Table
 
 | Feature | Meaning | Data Type | Keep/Remove | Reason |
@@ -60,10 +82,10 @@ For every column in your dataset, add one row:
 | `' Bwd IAT Std'` | Standard deviation of backward gaps | float64 | Keep | Regularity of the server's timing. |
 | `' Bwd IAT Max'` | Longest gap between backward packets | int64 | Keep | Shows stalled or slow server responses. |
 | `' Bwd IAT Min'` | Shortest gap between backward packets | int64 | Keep | Shows burst responses. |
-| `'Fwd PSH Flags'` | Number of times the TCP PSH ("push data now") flag was set in forward packets | int64 | Remove | Almost always 0 or 1 and largely overlaps with PSH Flag Count, which is kept. Verify with the check below. |
-| `' Bwd PSH Flags'` | Number of times the PSH flag was set in backward packets | int64 | Remove | Constant 0 in CICIDS2017 (the extractor never populates it), so it has zero information. |
-| `' Fwd URG Flags'` | Number of times the TCP URG ("urgent data") flag was set in forward packets | int64 | Remove | Near-constant (almost always 0) and overlaps with URG Flag Count, which is kept. |
-| `' Bwd URG Flags'` | Number of times the URG flag was set in backward packets | int64 | Remove | Constant 0 in CICIDS2017, so it has zero information. |
+| `'Fwd PSH Flags'` | Number of times the TCP PSH ("push data now") flag was set in forward packets | int64 | **Keep** (added back 23-10-2026) | First removed as "almost always 0". The check showed it is non-zero in **4.32%** of training rows (2 distinct values), so it carries real information. Checked in notebook 4, Step 3. It is in list A (58 features) but not in B, because B already has PSH Flag Count, which counts PSH flags in both directions. |
+| `' Bwd PSH Flags'` | Number of times the PSH flag was set in backward packets | int64 | Remove | Always 0 in this file (1 distinct value), so it has zero information. Checked in notebook 4, Step 3. |
+| `' Fwd URG Flags'` | Number of times the TCP URG ("urgent data") flag was set in forward packets | int64 | Remove | Always 0 in this file (1 distinct value). Checked in notebook 4, Step 3. |
+| `' Bwd URG Flags'` | Number of times the URG flag was set in backward packets | int64 | Remove | Always 0 in this file (1 distinct value). Checked in notebook 4, Step 3. |
 | `' Fwd Header Length'` | Total bytes of protocol headers in forward packets | int64 | Keep | Reflects packet count and TCP options. Different tools set different header options. |
 | `' Bwd Header Length'` | Total bytes of protocol headers in backward packets | int64 | Keep | Same idea for the server side. |
 | `'Fwd Packets/s'` | Forward packets per second | float64 | Keep | Client send rate, which matters because attacker traffic is often asymmetric. |
@@ -72,43 +94,43 @@ For every column in your dataset, add one row:
 | `' Max Packet Length'` | Largest packet in the flow, either direction | int64 | Keep | Flow-level size ceiling. |
 | `' Packet Length Mean'` | Average packet size across the whole flow | float64 | Keep | Summarises overall payload habits. |
 | `' Packet Length Std'` | Standard deviation of packet sizes across the flow | float64 | Keep | Uniform sizes indicate automation. |
-| `' Packet Length Variance'` | Variance of packet sizes (the square of the std) | float64 | Remove | Monotonic transform of Packet Length Std. Trees only use ordering, so it gives no new splits. |
-| `'FIN Flag Count'` | Number of packets with the TCP FIN (connection close) flag | float64 (integer-valued count) | Keep | Shows how connections are closed. Abnormal teardown patterns appear in scans and DoS. |
-| `' SYN Flag Count'` | Number of packets with the TCP SYN (connection open) flag | float64 (integer-valued count) | Keep | Key for SYN floods and port scans. |
-| `' RST Flag Count'` | Number of packets with the TCP RST (connection reset) flag | float64 (integer-valued count) | Keep | Resets are common in scans and rejected connections. |
-| `' PSH Flag Count'` | Number of packets with the PSH flag | float64 (integer-valued count) | Keep | Indicates data being pushed, which helps separate application-level behaviour. |
-| `' ACK Flag Count'` | Number of packets with the ACK (acknowledgement) flag | float64 (integer-valued count) | Keep | Missing or excess ACKs signal half-open connections and floods. |
-| `' URG Flag Count'` | Number of packets with the URG flag | float64 (integer-valued count) | Keep | Rare but occasionally discriminative. A tree uses it only where it helps. |
-| `' CWE Flag Count'` | Number of packets with the CWR (congestion window reduced) flag; the name is a known typo in the dataset | float64 (integer-valued count) | Remove | Near-constant and, in CICIDS2017, tends to mirror the URG columns because of extractor quirks. Not a real congestion signal. |
-| `' ECE Flag Count'` | Number of packets with the ECE (explicit congestion notification echo) flag | float64 (integer-valued count) | Remove | In CICIDS2017 it is reported to be identical to RST Flag Count (an extractor bug), so it adds nothing. Verify with the check below. |
-| `' Down/Up Ratio'` | Ratio of download (backward) to upload (forward) traffic | float64 | Keep | Asymmetry feature: scans and floods are upload-heavy, exfiltration is download-heavy. |
-| `' Average Packet Size'` | Average size of a packet in the flow | float64 | Remove | Almost the same quantity as Packet Length Mean, so it is redundant. |
-| `' Avg Fwd Segment Size'` | Average size of forward segments | float64 | Remove | Identical to Fwd Packet Length Mean in this dataset. |
-| `' Avg Bwd Segment Size'` | Average size of backward segments | float64 | Remove | Identical to Bwd Packet Length Mean in this dataset. |
-| `' Fwd Header Length.1'` | Duplicate copy of `Fwd Header Length` (pandas added `.1` because the name appeared twice in the CSV) | float64 (integer-valued; duplicate column) | Remove | Exact duplicate of Fwd Header Length. Remove it if it somehow survived your cleaning. |
-| `'Fwd Avg Bytes/Bulk'` | Average bytes per "bulk" transfer in the forward direction | float64 (integer-valued) | Remove | Zero in the overwhelming majority of flows, so there is almost nothing to split on. |
-| `' Fwd Avg Packets/Bulk'` | Average packets per bulk transfer, forward | float64 (integer-valued) | Remove | Same near-constant zero issue. |
-| `' Fwd Avg Bulk Rate'` | Average bulk transfer rate, forward | float64 (integer-valued) | Remove | Same near-constant zero issue. |
-| `' Bwd Avg Bytes/Bulk'` | Average bytes per bulk transfer, backward | float64 (integer-valued) | Remove | Same near-constant zero issue. |
-| `' Bwd Avg Packets/Bulk'` | Average packets per bulk transfer, backward | float64 (integer-valued) | Remove | Same near-constant zero issue. |
-| `'Bwd Avg Bulk Rate'` | Average bulk transfer rate, backward | float64 (integer-valued) | Remove | Same near-constant zero issue. |
-| `'Subflow Fwd Packets'` | Average number of forward packets per subflow | float64 (integer-valued count) | Remove | Equal to Total Fwd Packets in this dataset, so it is redundant. |
-| `' Subflow Fwd Bytes'` | Average forward bytes per subflow | float64 (integer-valued) | Remove | Equal to Total Length of Fwd Packets, so it is redundant. |
-| `' Subflow Bwd Packets'` | Average number of backward packets per subflow | float64 (integer-valued count) | Remove | Equal to Total Backward Packets, so it is redundant. |
-| `' Subflow Bwd Bytes'` | Average backward bytes per subflow | float64 (integer-valued) | Remove | Equal to Total Length of Bwd Packets, so it is redundant. |
-| `'Init_Win_bytes_forward'` | TCP window size (receive buffer, bytes) advertised in the first forward packet; `-1` when there's no TCP handshake | float64 (integer-valued; `-1` is a placeholder, not a real size) | Keep | Often among the most important features in CICIDS2017 papers. It reflects the sender's OS and tool fingerprint. Caveat: it may partly encode the lab setup rather than attack behaviour. |
-| `' Init_Win_bytes_backward'` | Same, for the first backward packet | float64 (integer-valued; `-1` is a placeholder, not a real size) | Keep | Reflects how the server responded to the handshake. Same caveat as above. |
-| `' act_data_pkt_fwd'` | Number of forward packets that carry at least 1 byte of actual data | float64 (integer-valued count) | Keep | Separates flows that carry real data from empty probes and handshakes. |
-| `' min_seg_size_forward'` | Smallest TCP segment header size seen in the forward direction | float64 (integer-valued) | Keep | Low variance, but it acts as a tool/OS fingerprint and sometimes isolates specific attacks. Cheap to keep. |
+| `' Packet Length Variance'` | Variance of packet sizes (the square of the std) | float64 | Remove | It is Packet Length Std squared, so it ranks flows in exactly the same order (Spearman = 1.000). A tree only uses the order of values, so it gives no new splits. Checked in notebook 4, Step 3. |
+| `'FIN Flag Count'` | Number of packets with the TCP FIN (connection close) flag | int64 (count) | Keep | Shows how connections are closed. Abnormal teardown patterns appear in scans and DoS. |
+| `' SYN Flag Count'` | Number of packets with the TCP SYN (connection open) flag | int64 (count) | Keep | Key for SYN floods and port scans. |
+| `' RST Flag Count'` | Number of packets with the TCP RST (connection reset) flag | int64 (count) | Keep | Resets are common in scans and rejected connections. |
+| `' PSH Flag Count'` | Number of packets with the PSH flag | int64 (count) | Keep | Indicates data being pushed, which helps separate application-level behaviour. |
+| `' ACK Flag Count'` | Number of packets with the ACK (acknowledgement) flag | int64 (count) | Keep | Missing or excess ACKs signal half-open connections and floods. |
+| `' URG Flag Count'` | Number of packets with the URG flag | int64 (count) | Keep | Rare but occasionally discriminative. A tree uses it only where it helps. |
+| `' CWE Flag Count'` | Number of packets with the CWR (congestion window reduced) flag; the name is a known typo in the dataset | int64 (count) | Remove | Always 0 in this file (1 distinct value), so it has zero information. Checked in notebook 4, Step 3. |
+| `' ECE Flag Count'` | Number of packets with the ECE (explicit congestion notification echo) flag | int64 (count) | Remove | Nearly identical to RST Flag Count: the two differ in **1** of 488,393 training rows. Keeping both would add almost nothing. Checked in notebook 4, Step 3 (first claimed exactly identical, which was not quite true; decided 23-10-2026 to keep it out). |
+| `' Down/Up Ratio'` | Ratio of download (backward) to upload (forward) traffic | int64 | Keep | Asymmetry feature: scans and floods are upload-heavy, exfiltration is download-heavy. |
+| `' Average Packet Size'` | Average size of a packet in the flow | float64 | Remove | Almost the same ordering as Packet Length Mean (Spearman = **0.9976**, where 1.0 would be identical). Checked in notebook 4, Step 3 (first claimed exactly the same ordering; decided 23-10-2026 to keep it out). |
+| `' Avg Fwd Segment Size'` | Average size of forward segments | float64 | Remove | Identical to Fwd Packet Length Mean on every row. Checked in notebook 4, Step 3. |
+| `' Avg Bwd Segment Size'` | Average size of backward segments | float64 | Remove | Identical to Bwd Packet Length Mean on every row (largest difference 0.000001, a rounding error). Checked in notebook 4, Step 3. |
+| `' Fwd Header Length.1'` | Duplicate copy of `Fwd Header Length` (pandas added `.1` because the name appeared twice in the CSV) | int64 (duplicate column) | Remove | Identical to Fwd Header Length on every row. Checked in notebook 4, Step 3. |
+| `'Fwd Avg Bytes/Bulk'` | Average bytes per "bulk" transfer in the forward direction | int64 | Remove | Always 0 in this file (1 distinct value), so there is nothing to split on. Checked in notebook 4, Step 3. |
+| `' Fwd Avg Packets/Bulk'` | Average packets per bulk transfer, forward | int64 | Remove | Always 0 in this file (1 distinct value), so there is nothing to split on. Checked in notebook 4, Step 3. |
+| `' Fwd Avg Bulk Rate'` | Average bulk transfer rate, forward | int64 | Remove | Always 0 in this file (1 distinct value), so there is nothing to split on. Checked in notebook 4, Step 3. |
+| `' Bwd Avg Bytes/Bulk'` | Average bytes per bulk transfer, backward | int64 | Remove | Always 0 in this file (1 distinct value), so there is nothing to split on. Checked in notebook 4, Step 3. |
+| `' Bwd Avg Packets/Bulk'` | Average packets per bulk transfer, backward | int64 | Remove | Always 0 in this file (1 distinct value), so there is nothing to split on. Checked in notebook 4, Step 3. |
+| `'Bwd Avg Bulk Rate'` | Average bulk transfer rate, backward | int64 | Remove | Always 0 in this file (1 distinct value), so there is nothing to split on. Checked in notebook 4, Step 3. |
+| `'Subflow Fwd Packets'` | Average number of forward packets per subflow | int64 (count) | Remove | Identical to Total Fwd Packets on every row. Checked in notebook 4, Step 3. |
+| `' Subflow Fwd Bytes'` | Average forward bytes per subflow | int64 | Remove | Identical to Total Length of Fwd Packets on every row. Checked in notebook 4, Step 3. |
+| `' Subflow Bwd Packets'` | Average number of backward packets per subflow | int64 (count) | Remove | Identical to Total Backward Packets on every row. Checked in notebook 4, Step 3. |
+| `' Subflow Bwd Bytes'` | Average backward bytes per subflow | int64 | Remove | Nearly identical to Total Length of Bwd Packets: they differ in only **34** of 488,393 training rows (0.007%). In those few rows the difference can be large (up to 469,129 bytes), but 34 rows are too few to matter for the tree. Checked in notebook 4, Step 3 (first claimed exactly identical; decided 23-10-2026 to keep it out). |
+| `'Init_Win_bytes_forward'` | TCP window size (receive buffer, bytes) advertised in the first forward packet; `-1` when there's no TCP handshake | int64 (`-1` is a placeholder, not a real size) | Keep | Often among the most important features in CICIDS2017 papers. It reflects the sender's OS and tool fingerprint. Caveat: it may partly encode the lab setup rather than attack behaviour. |
+| `' Init_Win_bytes_backward'` | Same, for the first backward packet | int64 (`-1` is a placeholder, not a real size) | Keep | Reflects how the server responded to the handshake. Same caveat as above. |
+| `' act_data_pkt_fwd'` | Number of forward packets that carry at least 1 byte of actual data | int64 (count) | Keep | Separates flows that carry real data from empty probes and handshakes. |
+| `' min_seg_size_forward'` | Smallest TCP segment header size seen in the forward direction | int64 | Keep | Low variance, but it acts as a tool/OS fingerprint and sometimes isolates specific attacks. Cheap to keep. |
 | `'Active Mean'` | Average time the flow was active before going idle | float64 | Keep | Burst behaviour. Slow attacks have short active bursts. |
 | `' Active Std'` | Standard deviation of active periods | float64 | Keep | Regularity of the bursts. |
-| `' Active Max'` | Longest active period | float64 (integer-valued) | Keep | Sustained activity, relevant to floods. |
-| `' Active Min'` | Shortest active period | float64 (integer-valued) | Keep | Smallest burst length. |
+| `' Active Max'` | Longest active period | int64 | Keep | Sustained activity, relevant to floods. |
+| `' Active Min'` | Shortest active period | int64 | Keep | Smallest burst length. |
 | `'Idle Mean'` | Average time the flow was idle before becoming active again | float64 | Keep | Key for slow-rate DoS (Slowloris, Slowhttptest), which deliberately sit idle. |
 | `' Idle Std'` | Standard deviation of idle periods | float64 | Keep | Regularity of the pauses. |
-| `' Idle Max'` | Longest idle period | float64 (integer-valued) | Keep | Long idle holds are a slow-DoS signature. |
-| `' Idle Min'` | Shortest idle period | float64 (integer-valued) | Keep | Shortest pause between bursts. |
-| `' Label'` | The class of the flow: `BENIGN` or the attack type (e.g. DoS, PortScan) | object (string; must be encoded to numbers before training) | Keep | This is your target (`y`), not an input feature. Keep it, but split it off with `y = df['Label']` and `X = df.drop(columns='Label')` so it never leaks into `X`. |
+| `' Idle Max'` | Longest idle period | int64 | Keep | Long idle holds are a slow-DoS signature. |
+| `' Idle Min'` | Shortest idle period | int64 | Keep | Shortest pause between bursts. |
+| `' Label'` | The class of the flow: `BENIGN` or one of the 5 attack types in this file (DoS Hulk, DoS GoldenEye, DoS slowloris, DoS Slowhttptest, Heartbleed) | object (string; must be encoded to numbers before training) | Keep | This is your target (`y`), not an input feature. Keep it, but split it off with `y = df['Label']` and `X = df.drop(columns='Label')` so it never leaks into `X`. |
 
 Add as many rows as you have columns. This table becomes Stage 4's main deliverable
 alongside the feature-engineering notebook — it's the evidence that every column was a
