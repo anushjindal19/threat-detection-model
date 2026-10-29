@@ -205,3 +205,37 @@ Any errors/problems:
 
 Next step: write the paper. Figures for it are made by notebook 06 from the saved CSVs.
 ```
+
+## 2026-10-29 — Stage 7: over-fitting check on Friday afternoon (notebook 07)
+
+```
+Why: the Wednesday scores (99.9% accuracy) looked too good to be true. Train and test came
+  from the same day, split at random, so the trees might have learned "Wednesday" rather
+  than attacks.
+Dataset files used: Wednesday (training set of split 42, same trees as notebooks 4-5) and
+  Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv, cleaned like notebook 2:
+  225,745 -> 223,082 rows (34 infinite, 2,629 duplicates); 95,068 BENIGN, 128,014 DDoS.
+  Why Friday afternoon: lots of normal traffic, and the DDoS (LOIT tool, 3 attacking
+  machines) hit port 80 of the same web server (192.168.10.50) as Wednesday's DoS attacks.
+  No other CICIDS2017 day has Wednesday's exact attacks.
+
+What I observed (unlimited tree, list A):
+  - DDoS flows flagged as an attack: 38,059 of 128,014 = 29.7% (Wednesday: 99.9% of
+    attacks). 89,955 DDoS flows were called BENIGN, 38,030 "DoS Hulk", 29 "DoS Slowhttptest".
+  - False alarms on normal traffic: 24 of 95,068 = 0.025% (Wednesday: 0.025%).
+  - Accuracy (exact label): 42.60%; "always normal" also scores 42.62%.
+    Accuracy (attack vs normal): 59.67%.
+  - Other lists catch 18.2% to 61.7% of the DDoS; the share jumps with list and depth with
+    no clear pattern (a depth-1 tree catches 62.7%). D-NS raises 8.5% false alarms.
+  So: the trees did not memorise Wednesday's normal traffic, but their attack detection is
+  tied to Wednesday's specific attacks and does not carry over to a related flood attack.
+
+Any errors/problems:
+  - DDoS is a different tool from more machines, so this cannot fully separate
+    "over-fitted" from "different attack". The same four DoS tools are in CSE-CIC-IDS2018
+    (15 and 16 Feb 2018), which would be the direct test (not downloaded).
+  - Found while checking the dataset page: Heartbleed targeted a different server
+    (192.168.10.51, port 444) from the four DoS attacks (192.168.10.50). Corrected in the README.
+
+Next step: decide whether to add this check to the paper's Results and Limitations.
+```
