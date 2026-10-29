@@ -145,3 +145,63 @@ Next step:
      (B, C and D use the same features as before).
   3. Then move on to making the tree smaller (max_depth / pruning).
 ```
+
+## 2026-10-29 — Stage 6: shrinking the tree (notebook 05), and the Stage 5 re-run with list A (58)
+
+```
+Dataset file used: Wednesday-workingHours.pcap_ISCX.csv (raw file; notebook 05 repeats the
+  notebook 2 cleaning and split). Split 42 checked against y_train.csv / y_test.csv from
+  notebook 2: identical, row for row. 610,492 rows, 488,393 train + 122,099 test.
+Machine: one 2-core CPU, scikit-learn 1.9.1 (Colab used an older version).
+
+What I did:
+  1. Part 1: re-ran the 8 Stage 5 runs with the new 58-feature list A, so all results come
+     from the same machine and library version. Replaced every row of results.csv (the -v1
+     rows are gone) and the three S5_*.csv files.
+  2. Part 2: "always BENIGN" baseline on 5 splits.
+  3. Part 3: depth sweep. max_depth 1,2,3,4,5,6,8,10,12,15,20,unlimited x 8 feature lists
+     (A, B, C, D and A-NS, B-NS, C-NS, D-NS = without Destination Port and both
+     Init_Win_bytes features) x 5 splits (seeds 42-46) = 480 trees.
+  4. Part 4: cost-complexity pruning, 13 ccp_alpha values from 0 to 0.03, split 42 only.
+  5. Part 5: chose the smallest depth on a VALIDATION set (20% of the training set):
+     every class except Heartbleed within 1 point of the unlimited tree (also a 0.1-point
+     version). Rule written into the notebook before the full run (a 2-minute code test
+     had only shown test scores for 2 depths on 2 lists).
+  6. New measures: compact size (9 bytes per node) and average comparisons per flow.
+     A classifier using only the compact arrays gave exactly the same predictions as
+     scikit-learn for all 480 + 104 trees.
+
+What I observed:
+  Stage 5 re-run (split 42): A 58 features: attack recall 99.91%, 36 missed, 21 false
+    alarms, 823 nodes, 0.76 MB. C and D: exactly the same as the 23-10 Colab run. B and the
+    no-port runs differ by a few flows (B false alarms 26 -> 28; C_no_port 1607 -> 1603
+    nodes), because the newer scikit-learn breaks ties between equal splits differently.
+  Depth sweep (means over 5 splits):
+    - Rare attacks are lost first. A at depth 8: attack recall 98.4% but Slowhttptest
+      81.8%, slowloris 88.5%, Hulk 99.4%. A at depth 4: attack recall 93.3%, Slowhttptest
+      18.2%, slowloris 32.9%.
+    - Attack recall is not a safe summary: A at depth 3 flags 97.8% of attacks but raises
+      false alarms from 0.03% to 4.3% of benign flows.
+    - Without the shortcut features the unlimited trees are 3.5x (A-NS) to 11x (D-NS)
+      bigger and overfit: D-NS at depth 15-20 catches more attacks (98.5-98.7%) than its
+      unlimited tree (97.1%). C-NS at depth 12 keeps its score with 85% fewer nodes.
+    - Results barely move between splits: unlimited-tree attack recall varies by at most
+      0.3 points within any list.
+    - Heartbleed: no tree of depth 4 or less caught a Heartbleed flow on any split.
+  Validation choice (1-point rule): A 20, B 20, C 12, D 12, A-NS 20, B-NS 15, C-NS 12,
+    D-NS 20. Strict 0.1-point rule: A, B, A-NS, D-NS need the unlimited tree.
+  Pruning (split 42): much better than depth limits at the same size. A pruned to 217
+    nodes: macro F1 (no Heartbleed) 0.996 vs 0.997 full; depth 12 (293 nodes): 0.978.
+  Costs: memory to classify a batch of 1,000 flows depends on the number of features, not
+    the tree: 0.67 MB for list A at every depth, 0.09 MB for list D (scikit-learn copies
+    the batch). One flow at a time would need only 4 bytes per feature. Prediction time 0.05-0.37 ms
+    per 1,000 flows for every tree, too small and noisy to compare.
+
+Any errors/problems:
+  - First launch of the long run failed because the notebook file did not exist yet when
+    nbconvert started; re-launched, then ran without errors (about 1.5 hours).
+  - Pruning was only run on split 42 and was not chosen on the validation set, so its
+    advantage is a test-set comparison, not a validated choice.
+
+Next step: write the paper. Figures for it are made by notebook 06 from the saved CSVs.
+```
