@@ -46,3 +46,15 @@ This project asks the opposite question: not "how accurate can the detector get"
   production-ready intrusion detection system.
 - The model is a decision tree throughout: it is small, fast, interpretable and
   CPU-friendly, and its size can be controlled directly.
+
+## How the project answers it
+
+| Sub-question | Where |
+|---|---|
+| 1. Important features | Feature lists A-D (`notebooks/03_feature_engineering.ipynb`, `feature_documentation.md`) and the shortcut check (`notebooks/04_baseline_model.ipynb`) |
+| 2. How far a tree can shrink | Depth and pruning sweeps with per-class recall, 5 splits, depth chosen on a validation set (`notebooks/05_shrinking_the_tree.ipynb`) |
+| 3. Size vs cost | Nodes, compact size, comparisons per flow, prediction time and memory for every tree (notebooks 04 and 05) |
+| 4. Small-device budget | Compact tree sizes compared with ATmega328P and STM32F401 memory budgets (notebook 05, `README.md`) |
+| Generalisation | Wednesday-trained trees tested on the Friday afternoon file (`notebooks/07_friday_overfitting_check.ipynb`) |
+
+Results are summarised in the root `README.md`.
