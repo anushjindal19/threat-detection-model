@@ -86,8 +86,7 @@ v2_unseen_data/        CURRENT VERSION
   README.md            v2's full results and a guide to every result file
 ```
 
-The state of the repository when v1 was finished is also kept under the git tag
-`v1-random-split`.
+The repository exactly as it was when v1 was finished is commit `e75145f`.
 
 ## How to run
 

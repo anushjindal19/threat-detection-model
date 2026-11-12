@@ -264,9 +264,9 @@ The research notes shared by both versions are in `../research/`.
 
 ## How to run
 
-The notebooks and result files are unchanged from when v1 was finished (the same state is
-also kept under the git tag `v1-random-split`). They were written for the old folder layout,
-so they look for the data inside this folder:
+The notebooks and result files are unchanged from when v1 was finished (commit `e75145f`
+is the whole repository at that point). They were written for the old folder layout, so
+they look for the data inside this folder:
 
 ```
 pip install -r ../requirements.txt
