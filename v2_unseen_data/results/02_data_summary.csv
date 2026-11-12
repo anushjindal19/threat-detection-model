@@ -1,0 +1,10 @@
+day,file,rows_raw,infinite_removed,missing_removed,duplicates_removed,rows_clean,normal_flows,attack_flows
+Monday,Monday-WorkingHours.pcap_ISCX.csv,529918,437,0,26831,502650,502650,0
+Tuesday,Tuesday-WorkingHours.pcap_ISCX.csv,445909,264,0,24019,421626,412476,9150
+Wednesday,Wednesday-workingHours.pcap_ISCX.csv,692703,1297,0,80914,610492,416736,193756
+Thursday,Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv,170366,135,0,6052,164179,162036,2143
+Thursday,Thursday-WorkingHours-Afternoon-Infilteration.pcap_ISCX.csv,288602,207,0,35605,252790,252754,36
+Friday,Friday-WorkingHours-Morning.pcap_ISCX.csv,191033,122,0,6867,184044,182096,1948
+Friday,Friday-WorkingHours-Afternoon-PortScan.pcap_ISCX.csv,286467,371,0,72319,213777,123083,90694
+Friday,Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv,225745,34,0,2629,223082,95068,128014
+All,(8 files),2830743,2867,0,255236,2572640,2146899,425741

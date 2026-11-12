@@ -1,0 +1,15 @@
+day,attack,train,validation,test,total
+Tuesday,FTP-Patator,3559,1186,1186,5931
+Tuesday,SSH-Patator,1932,644,643,3219
+Wednesday,DoS slowloris,3231,1077,1077,5385
+Wednesday,DoS Slowhttptest,3137,1046,1045,5228
+Wednesday,DoS Hulk,103708,34569,34569,172846
+Wednesday,DoS GoldenEye,6172,2057,2057,10286
+Wednesday,Heartbleed,7,2,2,11
+Thursday,Web Attack - Brute Force,882,294,294,1470
+Thursday,Web Attack - XSS,392,130,130,652
+Thursday,Web Attack - Sql Injection,13,4,4,21
+Thursday,Infiltration,22,7,7,36
+Friday,Bot,1169,390,389,1948
+Friday,PortScan,54417,18139,18138,90694
+Friday,DDoS,76809,25603,25602,128014
