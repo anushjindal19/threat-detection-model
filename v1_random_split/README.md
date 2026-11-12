@@ -1,8 +1,14 @@
-# Lightweight Cybersecurity Threat Detector
+# v1: decision trees on one day, random split
+
+> **This is the first version of the project, kept exactly as it was.** Its scores (about
+> 99.9%) are too high to trust: the test set was cut at random from the same day as the
+> training set, so the trees were tested on flows they had almost seen. Stage 7 below
+> already showed the problem, and `v2_unseen_data/` measures and fixes it. Read the
+> [main README](../README.md) first for the comparison of the two versions.
 
 How small and cheap can a machine-learning model for detecting network attacks be made
-before it starts missing attacks? This project trains decision trees on the public
-**CICIDS2017** dataset, shrinks them step by step, and measures what each size costs
+before it starts missing attacks? v1 trains decision trees on the **Wednesday** file of the
+public **CICIDS2017** dataset, shrinks them step by step, and measures what each size costs
 (nodes, bytes, comparisons per flow, memory) and what it loses, attack by attack.
 
 Every row of the data is one network **flow** (one conversation between two computers),
@@ -22,10 +28,10 @@ Author: Anush Jindal
 
 | Stage | What happens | Where |
 |---|---|---|
-| 1. Research | Research question, literature review, attack types, and a table explaining all 78 features | `research/` |
+| 1. Research | Research question, literature review, attack types, and a table explaining all 78 features | `../research/` |
 | 2. Explore | Load the Wednesday file of CICIDS2017: 692,703 flows, 79 columns. Check size, missing and infinite values, duplicates and class balance | `notebooks/01_dataset_exploration.ipynb` |
 | 3. Clean and split | Remove 1,297 rows with infinite values and 80,914 duplicate rows, leaving 610,492. Split 80/20 into a training set (488,393) and a test set (122,099), keeping the same class mix in both | `notebooks/02_preprocessing.ipynb` |
-| 4. Choose features | Drop 20 of the 78 features (always zero, or copies of another feature). Build four feature lists: **A (58), B (39), C (15), D (6)** | `notebooks/03_feature_engineering.ipynb`, `research/feature_documentation.md` |
+| 4. Choose features | Drop 20 of the 78 features (always zero, or copies of another feature). Build four feature lists: **A (58), B (39), C (15), D (6)** | `notebooks/03_feature_engineering.ipynb`, `../research/feature_documentation.md` |
 | 5. Baseline model | Train an untuned decision tree on each list. Measure attacks caught, tree size, speed and memory. Then remove possible "shortcut" features and check again | `notebooks/04_baseline_model.ipynb`, `experiments/` |
 | 6. Shrink the tree | Limit the tree's depth (1 to 20) and prune it, on lists A-D with and without the shortcut features, on 5 different train/test splits. Record what each class loses at every size. Choose the smallest good tree on a validation set, never on the test set | `notebooks/05_shrinking_the_tree.ipynb`, `notebooks/06_paper_figures.ipynb`, `experiments/` |
 | 7. Over-fitting check | Run the Wednesday-trained trees on the **Friday afternoon DDoS** file, which they have never seen | `notebooks/07_friday_overfitting_check.ipynb`, `experiments/` |
@@ -220,7 +226,7 @@ Unlimited trees (full table, every depth: `experiments/S7_friday_test.csv`):
 
 ## How every feature decision was checked
 
-The feature table (`research/feature_documentation.md`) gives a reason for keeping or
+The feature table (`../research/feature_documentation.md`) gives a reason for keeping or
 removing each of the 78 features. In notebook 4, Step 3, every "remove" reason was
 **tested on the real data** rather than taken from other papers:
 
@@ -233,50 +239,53 @@ removing each of the 78 features. In notebook 4, Step 3, every "remove" reason w
 
 ---
 
-## Repository layout
+## What is in this folder
 
 ```
-research/      research question, literature review, references, attack types, and the
-               feature table (feature_documentation.md)
 notebooks/     01 explore, 02 clean and split, 03 choose features, 04 baseline model,
                05 shrinking the tree (Stage 6, also re-runs Stage 5), 06 paper figures,
                07 over-fitting check on Friday afternoon (Stage 7)
 experiments/   results.csv (one row per experiment), experiment_notes.md (dated log of
-               what was done and why), feature_sets.json (lists A-D), the S5_*/S6_*/S7_*
-               result files and figures/. See experiments/README.md for every file and column.
-data/          how to download the CICIDS2017 files (the data itself is not committed)
+               what was done and why), feature_sets.json (lists A-D), the result files and
+               figures/. See experiments/README.md for every file and column.
 models/        trained trees are saved here (not committed; re-run notebook 4 to recreate)
 ```
 
+The result files in `experiments/`, grouped by stage:
+
+| Stage | Files |
+|---|---|
+| 5. Baseline | `S5_scores_without_heartbleed.csv`, `S5_per_class_recall.csv`, `S5_memory.csv` |
+| 6. Shrinking | `S6_depth_sweep.csv` (main experiment), `S6_ccp_sweep.csv`, `S6_validation_sweep.csv`, `S6_validation_choice.csv`, `S6_summary_by_depth.csv`, `S6_summary_chosen_depth.csv`, `S6_majority_baseline.csv` |
+| 7. Friday check | `S7_friday_test.csv`, `S7_friday_summary.csv` |
+| All stages | `results.csv` (headline rows), `feature_sets.json`, `experiment_notes.md`, `figures/` |
+
+The research notes shared by both versions are in `../research/`.
+
 ## How to run
 
-The notebooks run in Google Colab (the free CPU runtime is enough) or locally:
+The notebooks and result files are unchanged from when v1 was finished (the same state is
+also kept under the git tag `v1-random-split`). They were written for the old folder layout,
+so they look for the data inside this folder:
 
 ```
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 ```
 
-1. Download `Wednesday-workingHours.pcap_ISCX.csv` as described in `data/README.md` and put
-   it in `data/` (local) or the Drive data folder (Colab).
+1. Put `Wednesday-workingHours.pcap_ISCX.csv` (and, for notebook 07,
+   `Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv`) in `v1_random_split/data/`
+   (local) or the Drive data folder (Colab). Where to download them: `../data/README.md`.
 2. Run notebooks 01 → 04 in order. Notebook 02 writes the train/test files that
    notebooks 03 and 04 read.
 3. Notebook 05 needs only the raw CSV (it repeats the cleaning and split itself) and takes
    about 1.5 hours on a 2-core CPU. Notebook 06 builds the figures from the saved CSVs in
    seconds.
-4. Notebook 07 also needs `Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv` and takes
-   about 10 minutes.
+4. Notebook 07 takes about 10 minutes.
 
-## Next steps
+## What came next
 
-- **Test the same attacks on new data:** the CSE-CIC-IDS2018 DoS days (15 and 16 February
-  2018) use the same four DoS tools as Wednesday.
-- **Validate the pruning choice:** choose `ccp_alpha` on the validation set and repeat it on
-  several splits, as was done for depth.
-- **Run the tree on a microcontroller:** export the compact tree to C (for example with
-  emlearn) and benchmark it on an ATmega328P (32 KB flash / 2 KB SRAM) and an STM32F401
-  (512 KB flash / 96 KB RAM).
-- **Use the corrected CICIDS2017** (Engelen et al., 2021) to check how much the dataset's
-  labelling errors change the results.
+The first of v1's planned next steps, testing on traffic the trees had not seen, became
+**v2** (`../v2_unseen_data/`). The others are still open and are listed in the main README.
 
 ## Dataset
 

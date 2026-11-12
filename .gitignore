@@ -31,3 +31,13 @@ desktop.ini
 
 # Environment variables
 .env
+
+# v1 keeps its own data and model folders (old layout)
+v1_random_split/data/
+v1_random_split/models/*.pkl
+v1_random_split/models/*.joblib
+!v1_random_split/models/.gitkeep
+
+# v2: cleaned table made by notebook 02, and quick test runs
+data/*.pkl
+v2_unseen_data/results_quick_test/
