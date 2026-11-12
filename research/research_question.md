@@ -40,21 +40,34 @@ This project asks the opposite question: not "how accurate can the detector get"
 
 ## Scope
 
-- Only the attack types present in the CICIDS2017 files used (the Wednesday DoS attacks
-  and Heartbleed, plus the Friday afternoon DDoS as an unseen test day) are covered.
+- The data is CICIDS2017: five days of lab traffic with 14 attack types. v1 used one day
+  (Wednesday: four DoS attacks and Heartbleed); v2 uses all five days.
 - This is a research comparison of accuracy against resource cost, not a
   production-ready intrusion detection system.
 - The model is a decision tree throughout: it is small, fast, interpretable and
   CPU-friendly, and its size can be controlled directly.
 
+## Two versions
+
+The question has been answered twice. The second answer exists because the first one
+scored about 99.9%, which was too good to be true.
+
+| | v1 (`v1_random_split/`) | v2 (`v2_unseen_data/`) |
+|---|---|---|
+| Data | Wednesday only | All five days |
+| What the tree learns | The name of each attack | Attack or normal |
+| Features | Lists A-D, with and without three shortcut features | Lists A-D without the shortcut features |
+| Test set | Random 20% of the same day | Later traffic, an attack type never seen, a day never seen |
+| What its score means | How well the tree fills gaps in attack bursts it has already seen | How well the tree detects traffic it has not seen |
+
 ## How the project answers it
 
-| Sub-question | Where |
-|---|---|
-| 1. Important features | Feature lists A-D (`notebooks/03_feature_engineering.ipynb`, `feature_documentation.md`) and the shortcut check (`notebooks/04_baseline_model.ipynb`) |
-| 2. How far a tree can shrink | Depth and pruning sweeps with per-class recall, 5 splits, depth chosen on a validation set (`notebooks/05_shrinking_the_tree.ipynb`) |
-| 3. Size vs cost | Nodes, compact size, comparisons per flow, prediction time and memory for every tree (notebooks 04 and 05) |
-| 4. Small-device budget | Compact tree sizes compared with ATmega328P and STM32F401 memory budgets (notebook 05, `README.md`) |
-| Generalisation | Wednesday-trained trees tested on the Friday afternoon file (`notebooks/07_friday_overfitting_check.ipynb`) |
+| Sub-question | v1 | v2 |
+|---|---|---|
+| 1. Important features | Feature lists A-D (`feature_documentation.md`, v1 notebook 03) and the shortcut check (v1 notebook 04) | Uses the shortcut-free lists only |
+| 2. How far a tree can shrink | Depth and pruning sweeps with per-class recall, 5 random splits (v1 notebook 05) | The same sweeps scored on unseen traffic, with recall for every attack type (v2 notebooks 03 and 04) |
+| 3. Size vs cost | Nodes, compact size, comparisons per flow, prediction time and memory (v1 notebooks 04 and 05) | Nodes, compact size and comparisons per flow (v2 notebook 03) |
+| 4. Small-device budget | Compact tree sizes compared with ATmega328P and STM32F401 memory budgets (v1 notebook 05) | Same comparison for the v2 trees (v2 README) |
+| Is the score real? | Friday check (v1 notebook 07) | Random split vs split by time (v2 notebook 01); the four tests (v2 notebook 03) |
 
-Results are summarised in the root `README.md`.
+Results are summarised in the root `README.md`, with details in each version's own README.
