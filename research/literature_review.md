@@ -1,5 +1,8 @@
 # Literature Review
 
+Entries 1 to 7 were written for v1 (one day, random split). Entries 8 to 13 were added for
+v2 and cover the evaluation questions v2 raised.
+
 ## Entry 1 — The CICIDS2017 dataset paper
 
 **Citation:** Sharafaldin, I., Lashkari, A. H., & Ghorbani, A. A. (2018). *Toward
@@ -243,3 +246,119 @@ Ensemble of Autoencoders for Online Network Intrusion Detection.* NDSS 2018.
   its own Mirai data. That supports comparing against simple baselines.
 - Differences from us: Kitsune is unsupervised, works per packet and uses neural nets. We
   use supervised trees on CICFlowMeter flows.
+
+---
+
+## Entry 8 — Results look better when the split ignores time
+
+**Citation:** Pendlebury, F., Pierazzi, F., Jordaney, R., Kinder, J., & Cavallaro, L.
+(2019). *TESSERACT: Eliminating Experimental Bias in Malware Classification across Space
+and Time.* 28th USENIX Security Symposium, pp. 729-746.
+
+**Link:** https://www.usenix.org/conference/usenixsecurity19/presentation/pendlebury
+
+**What it says:**
+- Android malware classifiers were being reported at F1 scores up to 0.99.
+- Two kinds of bias inflated them: test sets with an unrealistic share of malware, and
+  train/test splits that let the model train on data from the future.
+- The authors give rules for splitting by time and re-evaluate published classifiers on
+  129,000 apps over three years. The earlier results were biased.
+
+**Relevance to this project:**
+- It is the standard reference for "split by time, not at random". v2's later-traffic test
+  applies the same idea to network flows.
+
+---
+
+## Entry 9 — Random and leakage-free splits compared on CIC-IDS2017
+
+**Citation:** Moczkodan, Z., & Ragab, H. (2026). *Do Transformers Actually Help Intrusion
+Detection? A Temporal Sequence Evaluation on CIC-IDS2017.* arXiv:2606.11098.
+
+**Link:** https://arxiv.org/abs/2606.11098
+
+**What it says:**
+- Nine models were compared under a random split and under splits that keep each
+  conversation on one side.
+- The Random Forest barely moved (macro-F1 0.77 to 0.78). The Transformer fell from 0.78 to
+  0.55, mostly because of how short sequences were padded, and its false-alarm rate rose
+  from 0.04% to 2.7%.
+- A plain chronological split of this dataset is degenerate: most attack classes fall
+  entirely in the training period.
+
+**Relevance to this project:**
+- It is the closest earlier work to v2's notebook 01, so the random-split result is not new.
+- Its point about the chronological split is why v2 cuts by time inside each label.
+
+---
+
+## Entry 10 — Destination port is a shortcut
+
+**Citation:** D'hooge, L., Verkerken, M., Volckaert, B., Wauters, T., & De Turck, F. (2022).
+*Establishing the Contaminating Effect of Metadata Feature Inclusion in Machine-Learned
+Network Intrusion Detection Models.* DIMVA 2022, LNCS 13358, pp. 23-41.
+https://doi.org/10.1007/978-3-031-09484-2_2
+
+**What it says:**
+- Used as the only feature, destination port separates ten intrusion datasets with 70 to
+  100% accuracy on class-balanced test sets.
+- The relationship only means something inside the dataset. The authors recommend never
+  including destination port, or any other metadata feature, in a model.
+
+**Relevance to this project:**
+- Independent support for the shortcut check in v1 and for dropping Destination Port in v2.
+
+---
+
+## Entry 11 — Design flaws shared by benchmark datasets
+
+**Citation:** Flood, R., Engelen, G., Aspinall, D., & Desmet, L. (2024). *Bad Design Smells
+in Benchmark NIDS Datasets.* IEEE 9th European Symposium on Security and Privacy
+(EuroS&P), pp. 658-675.
+
+**Link:** https://detlearsom.github.io/pubs/BadSmells-EuroSP24-finaldraft.pdf
+
+**What it says:**
+- A manual analysis of seven highly cited datasets found six recurring "data design
+  smells", among them poor data diversity, highly dependent features and unclear ground
+  truth.
+- The smells go with poorly defined generalisation criteria, and careless use of the
+  datasets biases the research built on them.
+
+**Relevance to this project:**
+- Background for the limitations: CICIDS2017 is one of the datasets with these problems.
+
+---
+
+## Entry 12 — Zero-day detection on CICIDS2017
+
+**Citation:** Hindy, H., Atkinson, R., Tachtatzis, C., Colin, J.-N., Bayne, E., &
+Bellekens, X. (2020). *Utilising Deep Learning Techniques for Effective Zero-Day Attack
+Detection.* Electronics, 9(10), 1684. https://doi.org/10.3390/electronics9101684
+
+**What it says:**
+- Zero-day attacks are approached as outlier detection: an autoencoder is compared with a
+  One-Class SVM on CICIDS2017 and NSL-KDD.
+- The paper reports a trade-off between recall and false alarms.
+
+**Relevance to this project:**
+- v2 tests a supervised tree on unseen attacks and finds it catches few. This is the
+  alternative approach, which v2 did not try. It is listed as a limitation and a next step.
+
+---
+
+## Entry 13 — Machine learning finds what resembles what it has seen
+
+**Citation:** Sommer, R., & Paxson, V. (2010). *Outside the Closed World: On Using Machine
+Learning for Network Intrusion Detection.* IEEE Symposium on Security and Privacy,
+pp. 305-316. https://doi.org/10.1109/SP.2010.25
+
+**What it says:**
+- Machine learning is rarely used for intrusion detection in real networks, despite a lot
+  of research.
+- Its strength is finding activity similar to something seen before. Finding new attacks
+  is a different and harder task.
+
+**Relevance to this project:**
+- It predicts v2's main result: the trees do well on attacks they have seen and badly on
+  the rest.

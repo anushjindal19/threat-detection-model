@@ -1,15 +1,15 @@
-day,attack,train,validation,test,total
-Tuesday,FTP-Patator,3559,1186,1186,5931
-Tuesday,SSH-Patator,1932,644,643,3219
-Wednesday,DoS slowloris,3231,1077,1077,5385
-Wednesday,DoS Slowhttptest,3137,1046,1045,5228
-Wednesday,DoS Hulk,103708,34569,34569,172846
-Wednesday,DoS GoldenEye,6172,2057,2057,10286
-Wednesday,Heartbleed,7,2,2,11
-Thursday,Web Attack - Brute Force,882,294,294,1470
-Thursday,Web Attack - XSS,392,130,130,652
-Thursday,Web Attack - Sql Injection,13,4,4,21
-Thursday,Infiltration,22,7,7,36
-Friday,Bot,1169,390,389,1948
-Friday,PortScan,54417,18139,18138,90694
-Friday,DDoS,76809,25603,25602,128014
+day,attack,train,validation,test,total,scheduled_start,first_row_at,median_row_at
+Tuesday,FTP-Patator,3559,1186,1186,5931,09:20,0.026,0.086
+Tuesday,SSH-Patator,1932,644,643,3219,14:00,0.369,0.471
+Wednesday,DoS slowloris,3231,1077,1077,5385,09:47,0.011,0.081
+Wednesday,DoS Slowhttptest,3137,1046,1045,5228,10:14,0.11,0.115
+Wednesday,DoS Hulk,103708,34569,34569,172846,10:43,0.119,0.27
+Wednesday,DoS GoldenEye,6172,2057,2057,10286,11:10,0.442,0.851
+Wednesday,Heartbleed,7,2,2,11,15:12,0.858,0.858
+Thursday,Web Attack - Brute Force,882,294,294,1470,09:20,0.076,0.24
+Thursday,Web Attack - XSS,392,130,130,652,10:15,0.429,0.47
+Thursday,Web Attack - Sql Injection,13,4,4,21,10:40,0.536,0.543
+Thursday,Infiltration,22,7,7,36,14:19,0.255,0.387
+Friday,Bot,1169,390,389,1948,10:02,0.128,0.593
+Friday,PortScan,54417,18139,18138,90694,13:55,0.007,0.618
+Friday,DDoS,76809,25603,25602,128014,15:56,0.083,0.467

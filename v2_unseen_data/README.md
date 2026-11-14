@@ -25,8 +25,8 @@ not the attack.
 |---|---|---|---|
 | **1. Random split** | a random 60% of all flows | a random 20% | v1's method, kept only for comparison |
 | **2. Later traffic** | the first 60% of every attack and of normal traffic, in time order | the last 20% | Does it still work later the same day? |
-| **3. New attack** | the training part without one attack type | that attack type (all of its flows) and later normal traffic | Does it catch an attack tool it has never seen? 14 runs, one per attack type |
-| **4. New day** | the training part of four days | the whole fifth day | Does it work on a day it has never seen? 5 runs, one per day |
+| **3. New attack** | the training part without one attack type (the rest of that attack's day stays in) | that attack type (all of its flows) and later normal traffic | Does it catch an attack tool it has never seen? 14 runs, one per attack type |
+| **4. New day** | the training part of four days | the whole fifth day, whose attack types are all unseen | Does it work on a day it has never seen? 5 runs, one per day |
 
 The 20% between the training part and the test part is the validation set. It is used only
 to choose the tree size.
@@ -38,7 +38,7 @@ Run them in order. Each one saves its results to `results/` with the same number
 | Notebook | What it does | Time |
 |---|---|---|
 | `01_why_v1_scored_so_high` | Takes v1's data and model and changes only the split, from random to by time | 4 min |
-| `02_prepare_all_days` | Cleans the eight files like v1 did, marks train / validation / test by time order, saves one table | 1 min |
+| `02_prepare_all_days` | Cleans the eight files like v1 did, marks train / validation / test by time order, checks that file order follows the published attack schedule, saves one table | 1 min |
 | `03_train_and_test` | Trains the trees for all four tests and scores them at every depth limit and pruning strength | 30 min |
 | `04_results` | Tables, figures and findings from the saved scores (no training) | seconds |
 
@@ -90,28 +90,39 @@ All four lists: `results/04_summary_by_test.csv`.
 
 ### 3. Which attacks are caught when the tree has never seen them
 
-List A-NS, full-size tree. "Seen" is test 2, "unseen" is test 3.
+List A-NS, full-size tree. "Seen" is test 2. "Type unseen" is test 3: that attack type is
+kept out but the rest of its day stays in training. "Day unseen" is test 4: the whole day is
+kept out. Each attack type was run on one day only.
 
-| Attack | Flows | Recall when seen | Recall when unseen |
-|---|---|---|---|
-| DoS Hulk | 172,846 | 89.8% | 85.8% |
-| DDoS | 128,014 | 99.6% | 63.0% |
-| PortScan | 90,694 | 99.8% | 0.2% |
-| DoS GoldenEye | 10,286 | 99.8% | 3.4% |
-| FTP-Patator | 5,931 | 97.2% | 0.0% |
-| DoS slowloris | 5,385 | 76.9% | 70.9% |
-| DoS Slowhttptest | 5,228 | 93.3% | 36.5% |
-| SSH-Patator | 3,219 | 87.2% | 0.1% |
-| Bot | 1,948 | 0.0% | 0.0% |
-| Web Attack - Brute Force | 1,470 | 94.6% | 82.5% |
-| Web Attack - XSS | 652 | 92.3% | 92.9% |
-| Infiltration | 36 | 71.4% | 2.8% |
-| Web Attack - Sql Injection | 21 | 50.0% | 14.3% |
-| Heartbleed | 11 | 100.0% | 0.0% |
+| Attack | Flows | Seen | Type unseen | Day unseen |
+|---|---|---|---|---|
+| DoS Hulk | 172,846 | 89.8% | 85.8% | 14.1% |
+| DDoS | 128,014 | 99.6% | 63.0% | 0.0% |
+| PortScan | 90,694 | 99.8% | 0.2% | 0.0% |
+| DoS GoldenEye | 10,286 | 99.8% | 3.4% | 4.9% |
+| FTP-Patator | 5,931 | 97.2% | 0.0% | 0.2% |
+| DoS slowloris | 5,385 | 76.9% | 70.9% | 53.8% |
+| DoS Slowhttptest | 5,228 | 93.3% | 36.6% | 21.6% |
+| SSH-Patator | 3,219 | 87.2% | 0.1% | 0.5% |
+| Bot | 1,948 | 0.0% | 0.0% | 0.0% |
+| Web Attack - Brute Force | 1,470 | 94.6% | 82.5% | 80.4% |
+| Web Attack - XSS | 652 | 92.3% | 92.9% | 91.3% |
+| Infiltration | 36 | 71.4% | 2.8% | 0.0% |
+| Web Attack - Sql Injection | 21 | 50.0% | 14.3% | 14.3% |
+| Heartbleed | 11 | 100.0% | 0.0% | 0.0% |
 
-An unseen attack is caught only when a similar attack stayed in the training data (another
-flood, another web attack, another slow DoS). Bot is missed even when seen: 0 of its 389
-later flows are caught, although a random split reports 48.7%.
+All four lists: `results/04_recall_by_attack.csv`.
+
+Test 3 makes some unseen attacks look detectable. Test 4 shows that most of that came from
+the rest of the day's traffic: DoS Hulk drops from 85.8% to 14.1% and DDoS from 63.0% to 6
+flows out of 128,014. DoS Hulk, the attack most like DDoS, stays in training in test 4 and
+does not help. Only the web attacks are still caught, and only by list A-NS (with 3.4%
+false alarms that day); lists B-NS and C-NS catch under 5% of them. Related attacks were run
+on the same day in this dataset, so the results cannot separate "a similar attack was in
+training" from "the same day was in training".
+
+Bot is missed even when seen: 0 of its 389 later flows are caught, although a random split
+reports 48.7%.
 
 ### 4. What shrinking the tree costs
 
@@ -146,10 +157,13 @@ No depth limit passed the rule for any list. All tests and lists: `results/04_ch
 ### Findings
 
 1. **The score depends almost entirely on the test.** List A-NS catches 99.2% of attack
-   flows with a random split, 94.7% on later traffic, 55.7% of an attack type it has never
-   seen and 7.2% of the attacks on a day it has never seen.
-2. **Unseen attacks are caught only when a close relative was in training.** Otherwise
-   recall is near zero (PortScan 0.2%, FTP-Patator 0.0%, SSH-Patator 0.1%).
+   flows with a random split, 94.7% on later traffic, 55.7% of the flows of attack types it
+   has never seen (32.3% counting each type equally) and 7.2% of the attacks on a day it
+   has never seen.
+2. **An unseen attack is caught only with help from the rest of its day.** With one attack
+   type held out, DoS Hulk is still caught 85.8% of the time and DDoS 63.0%. With their
+   whole day held out, 14.1% and 0.0%. PortScan, FTP-Patator and SSH-Patator are missed
+   either way (0.2% or less).
 3. **A seen attack can still be missed later the same day.** Bot: 48.7% with a random split,
    0 of 389 on later traffic.
 4. **False alarms rise on a new day:** 0.08% on later traffic from seen days, 0.04% to 3.4%
@@ -159,20 +173,39 @@ No depth limit passed the rule for any list. All tests and lists: `results/04_ch
    depth 10 and reach 31-33% from depth 12.
 6. **Pruning shrinks the tree safely; depth limits do not.** Pruning removed 77% of the
    A-NS tree (35.5 KB to 8.0 KB) with the all-flows recall unchanged. A pruned tree matched
-   or beat the depth-limited tree of at least the same size in 80% of comparisons on seen
-   attacks and 76% on unseen ones.
+   or beat the depth-limited tree of at least the same size in 77 of 96 comparisons on seen
+   attacks and 656 of 864 on unseen ones.
 7. **On a small device:** the full A-NS tree (35.5 KB) is too big for the 32 KB of an
    ATmega328P; the pruned one (8.0 KB) fits. Every tree fits the 512 KB of an STM32F401.
+
+## How this relates to earlier work
+
+None of the warnings above is new on its own, and the paper says so. Notes on each source
+are in `../research/literature_review.md`.
+
+- Splitting by time instead of at random: Pendlebury et al. (2019) for malware; Moczkodan
+  and Ragab (2026) on this dataset.
+- Dropping Destination Port: D'hooge et al. (2022).
+- Holding an attack out to imitate a zero-day: Hindy et al. (2020), with anomaly detectors.
+- Machine learning finds what is similar to what it has seen: Sommer and Paxson (2010).
+
+What this project adds is the size axis: the same size-versus-detection curve drawn under
+four tests, with recall for every attack type.
 
 ## Limitations
 
 - Tests 1 and 2 are one split each. Tests 3 and 4 are averages over 14 and 5 runs.
-- "Time" is the row order of the public CSV files, which have no timestamp column.
+- "Time" is the row order of the public CSV files, which have no timestamp column. Notebook
+  02 checks that the attacks in each file first appear in the order of the published
+  schedule, but the order is not exact.
 - Heartbleed (11 flows), Web Attack - Sql Injection (21) and Infiltration (36) are too small
   to score reliably.
 - Depth-limited trees were made by cutting the full tree instead of re-training. Notebook 03
   measured at least 99.9% agreement with re-training at the depths it checked.
-- In tests 3 and 4 the tree size is chosen on validation rows that hold only seen attacks.
+- The validation rule was settled after a first run of notebook 03 (see `notes.md`), so it
+  was not fixed in advance. In tests 3 and 4 it sees only attacks the tree has seen.
+- No detector trained on normal traffic alone (an anomaly detector) was tried, although
+  that is the usual approach to unseen attacks.
 - All five days are one lab network in one week, so a different network is likely to be
   harder. The feature lists were chosen on Wednesday's data in v1.
 - CICIDS2017 has known labelling and flow-construction errors (Engelen et al., 2021;
@@ -186,11 +219,11 @@ No depth limit passed the rule for any list. All tests and lists: `results/04_ch
 |---|---|---|
 | `01_random_vs_time_split.csv` | Wednesday, v1's model, random split vs split by time, for v1's 8 feature lists | 16 |
 | `02_data_summary.csv` | Rows before and after cleaning, for each of the 8 files | 9 |
-| `02_attack_counts.csv` | Flows of each attack type in the train / validation / test parts | 14 |
+| `02_attack_counts.csv` | Flows of each attack type in the train / validation / test parts, its scheduled start time and where it sits in its file | 14 |
 | `03_all_trees.csv` | **The main results.** One row per test × held-out attack or day × feature list × tree size | 2,016 |
 | `03_recall_per_attack.csv` | The same trees, with recall for each attack type on the validation and the test rows | 48,384 |
 | `04_summary_by_test.csv` | Full-size trees, averaged for each test and feature list | 16 |
-| `04_recall_by_attack.csv` | Recall of each attack type when seen and when unseen | 14 |
+| `04_recall_by_attack.csv` | Recall of each attack type when seen, when its type is unseen and when its whole day is unseen | 14 |
 | `04_chosen_trees.csv` | The smallest tree chosen on validation data next to the full tree, for each test, list and method | 32 |
 | `figures/` | `fig1` random vs time split, `fig2` four tests, `fig3` seen vs unseen by attack, `fig4` recall at every depth, `fig5` depth limits vs pruning | 5 |
 
@@ -225,5 +258,6 @@ pip install -r ../requirements.txt
 3. To check notebook 03 quickly before the full run, start Jupyter with `QUICK=1` set. It
    then uses every 25th flow and two feature lists, and writes to `results_quick_test/`.
 
-All results in this folder came from one run on 12 November 2026 (scikit-learn 1.9.1,
-2-core CPU).
+The trees were trained in one run on 12 November 2026 (scikit-learn 1.9.1, 2-core CPU).
+Notebooks 02 and 04, which do no training, were re-run on 14 November 2026 after a review
+(see `notes.md`).

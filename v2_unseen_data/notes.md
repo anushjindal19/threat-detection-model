@@ -37,7 +37,8 @@ Decisions for v2:
     file order is used as the clock.
   - Four tests: random split (for comparison), later traffic, new attack (14 runs),
     new day (5 runs).
-  - Tree size chosen on validation rows with a rule fixed before looking at test scores.
+  - Tree size chosen on validation rows only (the rule itself was revised once, see the
+    next entry).
 ```
 
 ## 2026-11-12 — The v2 run (notebooks 02-04)
@@ -57,7 +58,8 @@ To save time each tree is grown once and read at every size:
 What I observed (full-size trees, list A-NS):
   - Attack flows caught: 99.2% random split, 94.7% later traffic, 55.7% unseen attack
     type, 7.2% unseen day. Per attack type: 86.0%, 82.3%, 32.3%, 16.4%.
-  - Unseen attacks are caught only when a relative stays in training: DoS Hulk 85.8%,
+  - (Reading corrected on 14 Nov, see the next entry.) Unseen attacks caught in test 3,
+    which I first read as "a relative stays in training": DoS Hulk 85.8%,
     XSS 92.9%, Web Brute Force 82.5%, slowloris 70.9%, DDoS 63.0%. PortScan 0.2%,
     FTP-Patator 0.0%, SSH-Patator 0.1%, Bot 0.0%, Heartbleed 0 of 11.
   - Bot: 190 of 390 caught with a random split; 0 of 389 on later traffic, and that 0 is
@@ -81,4 +83,46 @@ Any errors/problems:
   - Tests 1 and 2 are one split each (v1 used five random splits).
 
 Next step: update the paper. v1 becomes the naive baseline, v2 the main result.
+```
+
+## 2026-11-14 — Review of the repo and paper
+
+```
+Why: a last check of every number and every claim before the paper goes to Viraj sir.
+
+What was wrong and what changed:
+  1. Finding 2 claimed too much. It said unseen attacks are caught "only when a close
+     relative was in training". The data do not show that. Comparing test 3 (attack type
+     held out) with test 4 (whole day held out) for list A-NS:
+       DoS Hulk 85.8% -> 14.1%, DDoS 63.0% -> 0.0% (6 of 128,014),
+       DoS slowloris 70.9% -> 53.8%, DoS Slowhttptest 36.6% -> 21.6%,
+       Web Brute Force 82.5% -> 80.4%, Web XSS 92.9% -> 91.3% (A-NS only; B-NS and C-NS
+       fall below 5%).
+     DoS Hulk stays in training in test 4 and DDoS is still missed, so "a similar attack"
+     is not the explanation for DDoS. Related attacks share a day in this dataset, so the
+     two explanations cannot be separated. Finding 2 now says what the data show: test 3
+     is optimistic, test 4 is the stricter test. Notebook 04, both READMEs and the paper
+     were changed, and 04_recall_by_attack.csv has a "day unseen" column.
+  2. "Rule fixed before looking at test scores" was not true. The first version of the
+     validation rule used one pooled number; it was changed to "every attack type with at
+     least 100 validation flows" after the first run. The wording is corrected everywhere
+     and listed as a limitation.
+  3. "Time order" was assumed. Notebook 02 now checks it against the published attack
+     schedule: in every file the attacks first appear in schedule order. The order is not
+     exact (half of DoS GoldenEye's rows are in the last 15% of the Wednesday file).
+  4. Rounding: three figures had been rounded twice. DoS Slowhttptest unseen is 36.6%
+     (not 36.5%), list B-NS random-split recall per type is 86.8% (not 86.9%), and the
+     pruning comparison is now given as counts (77 of 96, 656 of 864).
+  5. Earlier work was missing from the write-up: time-aware splits (Pendlebury 2019),
+     random vs leakage-free splits on this dataset (Moczkodan and Ragab 2026), Destination
+     Port as a shortcut (D'hooge 2022), dataset design flaws (Flood 2024), zero-day
+     evaluation with anomaly detectors (Hindy 2020) and Sommer and Paxson (2010). Added
+     to the paper and to research/literature_review.md. The random-split result is
+     therefore not new; what is new here is the size axis.
+
+Not done (possible follow-ups):
+  - Hold out DDoS together with PortScan, to see which part of Friday's traffic the trees
+    used to catch DDoS in test 3.
+  - An anomaly detector trained on normal traffic only, as a baseline for unseen attacks.
+  - Tests 1 and 2 on several splits.
 ```

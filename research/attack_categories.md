@@ -26,6 +26,10 @@ after the same cleaning as notebook 02: 95,068 BENIGN and 128,014 DDoS. The DDoS
 sent with the LOIT tool from three attacking machines against port 80 of the same web
 server (192.168.10.50) as Wednesday's DoS attacks.
 
+**All five days** (v2): 14 attack types, each run on one day only. Counts per day, the
+time each attack was scheduled and where it sits in its file are in
+`../v2_unseen_data/results/02_attack_counts.csv`.
+
 ---
 
 ## Categories
@@ -89,6 +93,11 @@ keys) from a vulnerable server.
    reported as per-class recall and macro F1.
 3. **Heartbleed is too rare to score reliably.** All 11 rows survive cleaning (9 in the
    training set, 2 in the test set), so scores are also reported without Heartbleed.
+
+4. **v2 merges every attack into one "attack" label for training.** The attack names are
+   kept only for scoring, so recall can still be reported for each attack type.
+
+Points 1 to 3 describe v1.
 
 The category descriptions are general background taken from the public CICIDS2017
 documentation and the original paper (see `references.md`).

@@ -47,15 +47,21 @@ kept here, each in its own folder.
 ![The same full-size trees under four tests](v2_unseen_data/results/figures/fig2_four_tests.png)
 
 1. **The score depends almost entirely on the test.** The same kind of tree catches 99.2%
-   of attack flows with a random split, 94.7% on later traffic, 55.7% of an attack type it
-   has never seen and 7.2% of the attacks on a day it has never seen.
-2. **Unseen attacks are caught only when a similar attack was in training.** Otherwise
-   recall is near zero.
+   of attack flows with a random split, 94.7% on later traffic, 55.7% of the flows of attack
+   types it has never seen (32.3% counting each type equally) and 7.2% of the attacks on
+   a day it has never seen.
+2. **An unseen attack is caught only with help from the rest of its day.** With only that
+   attack type held out, DoS Hulk is still caught 85.8% of the time and DDoS 63.0%. With
+   their whole day held out, 14.1% and 0.0%.
 3. **A bigger tree mainly buys recall on attacks it has already seen:** from 21% with one
    question to 82% at full size (averaged per attack type).
 4. **Pruning shrinks the tree safely; depth limits do not.** Pruning removed 77% of the
    tree (35.5 KB to 8.0 KB) with the share of attack flows caught unchanged at 94.7%.
 5. **False alarms rise on a new day,** from 0.08% to 1.2% on average.
+
+None of these warnings is new on its own (see
+[`research/literature_review.md`](research/literature_review.md), entries 8 to 13). What the
+project adds is the size axis: the same size-versus-detection curve under four tests.
 
 Full tables, per-attack results and limitations: [v2 README](v2_unseen_data/README.md).
 v1's results (which attacks a smaller tree forgets first, the shortcut check, memory and
@@ -112,6 +118,8 @@ Each version's README lists its own limitations in full.
 
 - **Test on a different network:** CSE-CIC-IDS2018 has the same four DoS tools on another
   network (15 and 16 February 2018).
+- **Compare with an anomaly detector** trained on normal traffic only, the usual approach
+  to attacks nobody has seen.
 - **Repeat tests 1 and 2 of v2 on several splits,** as v1 did.
 - **Run the tree on a microcontroller:** export the pruned tree to C (for example with
   emlearn) and benchmark it on an ATmega328P and an STM32F401.

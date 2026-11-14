@@ -30,6 +30,12 @@
 | 5 | Cantone, Marrocco & Bria (2024), *Machine Learning in Network Intrusion Detection: A Cross-Dataset Generalization Study*, IEEE Access 12 (preprint: arXiv 2402.10974) | https://doi.org/10.1109/ACCESS.2024.3472907 |
 | 6 | Zheng et al. (2024), *Planter: Rapid Prototyping of In-Network ML Inference*, ACM SIGCOMM CCR | https://eng.ox.ac.uk/media/zetja3ek/zheng24planter.pdf |
 | 7 | Mirsky et al. (2018), *Kitsune: An Ensemble of Autoencoders for Online Network Intrusion Detection*, NDSS | https://arxiv.org/abs/1802.09089 |
+| 8 | Pendlebury et al. (2019), *TESSERACT: Eliminating Experimental Bias in Malware Classification across Space and Time*, USENIX Security | https://www.usenix.org/conference/usenixsecurity19/presentation/pendlebury |
+| 9 | Moczkodan & Ragab (2026), *Do Transformers Actually Help Intrusion Detection? A Temporal Sequence Evaluation on CIC-IDS2017*, arXiv | https://arxiv.org/abs/2606.11098 |
+| 10 | D'hooge et al. (2022), *Establishing the Contaminating Effect of Metadata Feature Inclusion in Machine-Learned Network Intrusion Detection Models*, DIMVA, LNCS 13358 | https://doi.org/10.1007/978-3-031-09484-2_2 |
+| 11 | Flood, Engelen, Aspinall & Desmet (2024), *Bad Design Smells in Benchmark NIDS Datasets*, IEEE EuroS&P | https://detlearsom.github.io/pubs/BadSmells-EuroSP24-finaldraft.pdf |
+| 12 | Hindy et al. (2020), *Utilising Deep Learning Techniques for Effective Zero-Day Attack Detection*, Electronics 9(10) | https://doi.org/10.3390/electronics9101684 |
+| 13 | Sommer & Paxson (2010), *Outside the Closed World: On Using Machine Learning for Network Intrusion Detection*, IEEE S&P | https://doi.org/10.1109/SP.2010.25 |
 
 ## Other sources cited
 
