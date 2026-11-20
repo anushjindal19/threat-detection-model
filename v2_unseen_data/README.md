@@ -4,6 +4,10 @@ v1 scored about 99.9% and that number could not be trusted. v2 keeps the same mo
 decision tree) and the same research question, and changes how the tree is trained and,
 above all, how it is tested.
 
+**Research question (unchanged):** How much detection performance can be retained while
+reducing the computational, memory, and model-size requirements of a machine-learning-based
+cybersecurity threat detector? The short answer is in the main [README](../README.md#answer-to-the-research-question).
+
 ## What changed from v1
 
 | | v1 | v2 |

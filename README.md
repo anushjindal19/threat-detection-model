@@ -17,7 +17,8 @@ Author: Anush Jindal
 ## Two versions
 
 The project has been done twice. The first version scored about 99.9%, which was too good
-to be true, so the second version tests the trees on traffic they have not seen. Both are
+to be true, so the second version answers the same question again, testing the trees on traffic they
+have not seen. Both are
 kept here, each in its own folder.
 
 | | [v1: random split](v1_random_split/) | [v2: unseen data](v2_unseen_data/) |
@@ -42,26 +43,40 @@ kept here, each in its own folder.
    from the same session. Kept out of training, an attack type is caught 32% of the time on
    average, and a port scan almost never.
 
-## What v2 found
+## Answer to the research question
 
-![The same full-size trees under four tests](v2_unseen_data/results/figures/fig2_four_tests.png)
+![Recall per attack type against model size, depth limits vs pruning](v2_unseen_data/results/figures/fig5_depth_vs_pruning.png)
 
-1. **The score depends almost entirely on the test.** The same kind of tree catches 99.2%
-   of attack flows with a random split, 94.7% on later traffic, 55.7% of the flows of attack
-   types it has never seen (32.3% counting each type equally) and 7.2% of the attacks on
-   a day it has never seen.
-2. **An unseen attack is caught only with help from the rest of its day.** With only that
-   attack type held out, DoS Hulk is still caught 85.8% of the time and DDoS 63.0%. With
-   their whole day held out, 14.1% and 0.0%.
-3. **A bigger tree mainly buys recall on attacks it has already seen:** from 21% with one
-   question to 82% at full size (averaged per attack type).
-4. **Pruning shrinks the tree safely; depth limits do not.** Pruning removed 77% of the
-   tree (35.5 KB to 8.0 KB) with the share of attack flows caught unchanged at 94.7%.
-5. **False alarms rise on a new day,** from 0.08% to 1.2% on average.
+Measured on traffic recorded after the training data (v2, 55-feature list):
 
-None of these warnings is new on its own (see
+| Tree | Size | Comparisons per flow | Attack flows caught | Per attack type |
+|---|---|---|---|---|
+| Full tree, 4,043 nodes | 35.5 KB | 17.6 | 94.7% | 82.3% |
+| Pruned, 913 nodes (chosen on validation data) | 8.0 KB | 14.7 | 94.7% | 80.2% |
+| Pruned, 265 nodes | 2.3 KB | 11.6 | 91.0% | 73.3% |
+| Pruned, 111 nodes | 1.0 KB | 10.6 | 86.1% | 64.3% |
+| One question | 0.03 KB | 1.0 | 44.4% | 21.3% |
+
+1. **Model size can be cut by about three quarters with no loss** in the share of attack
+   flows caught, if the tree is pruned. The pruned tree (8.0 KB) fits the 32 KB of an
+   ATmega328P microcontroller; the full tree (35.5 KB) does not.
+2. **Below that, the rarest attacks are forgotten first** while overall recall stays high.
+   The 2.3 KB tree misses every Infiltration and SQL-injection flow. A depth-8 tree still
+   catches 84.6% of attack flows but none of the web attacks.
+3. **Depth limits are the wrong way to shrink.** No depth limit passed the validation check;
+   pruning did for every feature list.
+4. **Computation falls much less than size** (17% fewer comparisons for a 77% smaller tree).
+   **Memory** follows both the tree and the number of features: fewer features save input
+   memory (52 bytes for 13 features against 220 for 55) but do not make the tree smaller,
+   and they cost detection on the less common attacks.
+5. **What can be retained is detection of known attacks.** On attack types left out of
+   training, trees of every size caught at most 33% per type, and on whole days left out at
+   most 22%. v1's random split hid this and made shrinking look free.
+
+None of the warnings about testing is new on its own (see
 [`research/literature_review.md`](research/literature_review.md), entries 8 to 13). What the
-project adds is the size axis: the same size-versus-detection curve under four tests.
+project adds is the size axis: the size-versus-detection curve measured attack by attack on
+traffic the tree has not seen.
 
 Full tables, per-attack results and limitations: [v2 README](v2_unseen_data/README.md).
 v1's results (which attacks a smaller tree forgets first, the shortcut check, memory and
