@@ -14,6 +14,7 @@ public CICIDS2017 dataset, shrinks them step by step, and records at every size 
 tree costs and which attacks it still catches.
 
 > **Research question**
+>
 > How much detection performance can be retained while reducing the computational,
 > memory, and model-size requirements of a machine-learning-based cybersecurity threat
 > detector?
@@ -82,12 +83,10 @@ Full tables and per-attack results: [`v2_unseen_data/README.md`](v2_unseen_data/
 
 ```mermaid
 flowchart LR
-    A["CICIDS2017<br/>8 files, 5 days"] --> B["Clean<br/>2,572,640 flows"]
-    B --> C["Split by time<br/>60 / 20 / 20"]
-    C --> D["Grow one full<br/>decision tree"]
-    D --> E["Shrink it<br/>12 depth limits<br/>12 pruning strengths"]
-    E --> F["Score every size<br/>recall per attack,<br/>false alarms, cost"]
-    F --> G["Pick the smallest tree<br/>on validation data"]
+    A["CICIDS2017<br/>8 files, 5 days"] --> B["Clean, then split<br/>by time 60/20/20"]
+    B --> C["Grow a full<br/>decision tree"]
+    C --> D["Shrink it: depth limits<br/>and pruning"]
+    D --> E["Score every size,<br/>pick the smallest<br/>on validation data"]
 ```
 
 | Step | What is done |
