@@ -2,10 +2,9 @@
 
 **Trading size for detection in decision-tree threat detectors**
 
-![Python](https://img.shields.io/badge/Python-3.13-3776AB)
-![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9.1-F7931E)
-![Dataset](https://img.shields.io/badge/dataset-CICIDS2017-2E7D32)
-![Status](https://img.shields.io/badge/status-research%20paper-6A1B9A)
+[![Python](https://img.shields.io/badge/Python-3.13-3776AB)](https://www.python.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.9.1-F7931E)](https://scikit-learn.org/stable/)
+[![Dataset](https://img.shields.io/badge/dataset-CICIDS2017-2E7D32)](https://www.unb.ca/cic/datasets/ids-2017.html)
 
 Routers, IoT gateways and microcontrollers have kilobytes of memory, not gigabytes. This
 project measures what a machine-learning intrusion detector loses when it is made small
